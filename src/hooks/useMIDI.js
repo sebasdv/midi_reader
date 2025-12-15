@@ -1,0 +1,110 @@
+import { useState, useEffect, useRef } from 'react';
+
+export function useMIDI() {
+    const [inputs, setInputs] = useState([]);
+    const [selectedInputId, setSelectedInputId] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const accessRef = useRef(null);
+
+    useEffect(() => {
+        if (!navigator.requestMIDIAccess) {
+            console.error("Web MIDI API not supported in this browser.");
+            return;
+        }
+
+        navigator.requestMIDIAccess().then(access => {
+            accessRef.current = access;
+            updateInputs(access);
+            access.onstatechange = () => updateInputs(access);
+        }).catch(err => console.error('MIDI Access Failed', err));
+    }, []);
+
+    const updateInputs = (access) => {
+        const inputsList = Array.from(access.inputs.values());
+        setInputs(inputsList);
+        // Auto-select first if none selected
+        if (inputsList.length > 0) {
+            // If current selection is invalid (e.g. disconnected), or none selected, pick first
+            // actually, let's just pick the first one if we don't have a valid selection
+            // But we can't easily check if selectedInputId is valid inside this scope without ref or dependency
+            // We'll rely on the user or a simple check. 
+            // For now, simpler: user must select, or we default to first.
+            // Let's not force change if we have one, unless it disappeared.
+            // Simplified:
+            // setInputs will trigger re-render, we can check validity there if we wanted, 
+            // but let's just leave it to the user or useEffect below.
+        }
+    };
+
+    useEffect(() => {
+        // Determine the effective input to listen to
+        let input = null;
+        if (accessRef.current) {
+            if (selectedInputId) {
+                input = accessRef.current.inputs.get(selectedInputId);
+            }
+
+            // Auto-select first if we don't have a connected input and we have inputs available
+            if (!input && inputs.length > 0) {
+                // This side effect in render logic might be bad, but setting state here is OK-ish or we can do it in updateInputs
+            }
+        }
+
+        // Actually, doing the auto-select logic in updateInputs is cleaner, but selectedInputId is state.
+        // Let's just handle the listener attachment.
+
+        if (!input && inputs.length > 0 && !selectedInputId) {
+            setSelectedInputId(inputs[0].id);
+            return;
+        }
+
+        if (!input) return;
+
+        const handleMIDIMessage = (event) => {
+            const { data } = event;
+            if (data.length < 2) return; // Ignore weird short messages?
+
+            const [status, data1, data2] = data;
+            const command = status >> 4;
+            const channel = status & 0xF;
+
+            let type = 'Unknown';
+            let note = data1;
+            let velocity = data2;
+
+            // Note Off: 0x8 or 0x9 with velocity 0
+            if (command === 0x8) {
+                type = 'Note Off';
+            } else if (command === 0x9) {
+                type = (data2 > 0) ? 'Note On' : 'Note Off';
+            } else if (command === 0xB) {
+                type = 'Control Change';
+                note = data1; // controller number
+                velocity = data2; // value
+            } else if (command === 0xE) {
+                type = 'Pitch Bend';
+                // data1 = LSB, data2 = MSB
+            }
+
+            const newMessage = {
+                id: Date.now() + Math.random(), // Simple unique ID
+                timestamp: event.timeStamp,
+                data: Array.from(data),
+                type,
+                channel: channel + 1,
+                note,
+                velocity
+            };
+
+            setMessages(prev => [newMessage, ...prev].slice(0, 50));
+        };
+
+        input.onmidimessage = handleMIDIMessage;
+
+        return () => {
+            if (input) input.onmidimessage = null;
+        };
+    }, [selectedInputId, inputs]);
+
+    return { inputs, selectedInputId, setSelectedInputId, messages };
+}
