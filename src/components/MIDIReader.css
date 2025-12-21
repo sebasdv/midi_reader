@@ -1,105 +1,241 @@
 .midi-reader {
     width: 100%;
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    background: #1a1a1a;
-    color: #e0e0e0;
+    padding: var(--space-l);
+    background: var(--color-bg);
+    color: var(--color-fg);
     min-height: 100vh;
-    box-sizing: border-box;
 }
 
 .midi-header {
+    border-bottom: 2px solid var(--color-fg);
+    padding-bottom: var(--space-m);
+    margin-bottom: var(--space-l);
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 20px;
+    align-items: flex-end;
 }
 
-.midi-header h1 {
+/* Glitch Logo */
+.glitch-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.glitch-text {
+    font-family: var(--font-accent);
+    font-size: 2.5rem;
     margin: 0;
-    font-size: 1.5rem;
-    color: #61dafb;
+    position: relative;
+    color: var(--color-fg);
+}
+
+.glitch-text::before,
+.glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+}
+
+.glitch-text::before {
+    left: 2px;
+    text-shadow: -2px 0 var(--color-accent-1);
+    clip-path: inset(44% 0 56% 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+    left: -2px;
+    text-shadow: -2px 0 var(--color-accent-2);
+    clip-path: inset(10% 0 85% 0);
+    animation: glitch-anim2 1s infinite linear alternate-reverse;
+}
+
+.subtitle {
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-top: var(--space-xs);
+    opacity: 0.7;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    align-items: flex-end;
+}
+
+.controls label {
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.select-wrapper {
+    position: relative;
 }
 
 .controls select {
-    padding: 8px;
-    border-radius: 4px;
-    background: #333;
-    color: white;
-    border: 1px solid #444;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    border: 2px solid var(--color-fg);
+    padding: var(--space-s) var(--space-m);
+    font-family: var(--font-main);
+    font-weight: bold;
+    cursor: pointer;
+    appearance: none;
+    outline: none;
 }
 
+.controls select:hover {
+    box-shadow: 3px 3px 0 var(--color-accent-1), -3px -3px 0 var(--color-accent-2);
+}
+
+/* Visualization Area */
 .visualization-area {
-    height: 100px;
+    margin-bottom: var(--space-l);
     display: flex;
-    align-items: center;
     justify-content: center;
-    background: #111;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid #333;
+    padding: var(--space-l);
+    border: 1px dashed var(--color-fg);
 }
 
-.visualizer-note {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #333;
-    transition: color 0.1s;
+.drum-pad {
+    width: 120px;
+    height: 120px;
+    border: 2px solid var(--color-fg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-accent);
+    font-size: 2rem;
+    background: var(--color-bg);
+    transition: all 0.05s;
+    position: relative;
 }
 
-.visualizer-note.active {
-    color: #61dafb;
-    text-shadow: 0 0 20px #61dafb;
+.drum-pad.active {
+    background: var(--color-fg);
+    color: var(--color-bg);
+    transform: scale(0.95);
+    box-shadow: 0 0 20px var(--color-accent-1);
 }
 
+.drum-pad.loaded::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    background: var(--color-fg);
+    border-radius: 50%;
+}
+
+.drum-pad.active.loaded::after {
+    background: var(--color-bg);
+}
+
+/* Terminal Log */
 .log-container {
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 8px;
-    overflow: hidden;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9rem;
+    border: 2px solid var(--color-fg);
+    background: var(--color-bg);
 }
 
-.log-header {
+.terminal-header {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 0.5fr 1fr 1fr;
-    padding: 10px;
-    background: #222;
-    border-bottom: 1px solid #333;
+    grid-template-columns: 100px 1.5fr 60px 1fr 1fr;
+    padding: var(--space-s) var(--space-m);
+    background: var(--color-fg);
+    color: var(--color-bg);
     font-weight: bold;
-    color: #888;
+    font-size: 0.7rem;
 }
 
 .log-list {
-    height: 400px;
+    height: 350px;
     overflow-y: auto;
+    font-family: var(--font-main);
 }
 
 .log-item {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 0.5fr 1fr 1fr;
-    padding: 6px 10px;
-    border-bottom: 1px solid #1a1a1a;
-    transition: background-color 0.2s;
+    grid-template-columns: 100px 1.5fr 60px 1fr 1fr;
+    padding: var(--space-xs) var(--space-m);
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
 }
 
 .log-item:hover {
-    background-color: #1f1f1f;
+    background: #f0f0f0;
 }
 
 .log-placeholder {
-    padding: 20px;
-    text-align: center;
-    color: #555;
+    padding: var(--space-l);
+    opacity: 0.5;
     font-style: italic;
 }
 
-/* Specific Message Types */
-.note-on { color: #4ade80; }
-.note-off { color: #9ca3af; }
-.control-change { color: #facc15; }
-.pitch-bend { color: #a78bfa; }
+/* Scrollbar */
+.log-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-list::-webkit-scrollbar-track {
+    background: #eee;
+}
+
+.log-list::-webkit-scrollbar-thumb {
+    background: var(--color-fg);
+}
+
+/* Keyframes */
+@keyframes glitch-anim {
+    0% {
+        clip-path: inset(80% 0 0 0);
+        transform: translate(-5px, -2px);
+    }
+
+    50% {
+        clip-path: inset(15% 0 80% 0);
+        transform: translate(5px, -2px);
+    }
+
+    100% {
+        clip-path: inset(62% 0 35% 0);
+        transform: translate(-2px, -2px);
+    }
+}
+
+@keyframes glitch-anim2 {
+    0% {
+        clip-path: inset(10% 0 85% 0);
+        transform: translate(5px, 2px);
+    }
+
+    100% {
+        clip-path: inset(15% 0 80% 0);
+        transform: translate(5px, -2px);
+    }
+}
+
+/* Type Colors (Subtle dots or accents) */
+.note-on {
+    border-left: 4px solid var(--color-accent-1);
+}
+
+.note-off {
+    opacity: 0.5;
+}
+
+.control-change {
+    color: #666;
+    font-style: italic;
+}
