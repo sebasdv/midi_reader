@@ -10,7 +10,7 @@ export function MIDIReader() {
             <header className="midi-header">
                 <div className="glitch-wrapper">
                     <h1 className="glitch-text" data-text="MIDI READER v0.1">MIDI READER v0.1</h1>
-                    <span className="subtitle">TECHNICAL INTERPRETER // REL.0.1</span>
+                    <span className="subtitle">REAL-TIME MIDI DATA MONITOR // V0.1</span>
                 </div>
 
                 <div className="controls">
