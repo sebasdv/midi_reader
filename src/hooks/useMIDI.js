@@ -137,17 +137,34 @@ export function useMIDI() {
             return;
         }
 
-        const logContent = {
-            startTime: new Date(recordingStartTime).toISOString(),
-            endTime: new Date().toISOString(), // Approximation if looked at later, or use actual stop time if tracked
-            events: recordingRef.current
-        };
+        const startTimeIso = new Date(recordingStartTime).toISOString();
+        const endTimeIso = new Date().toISOString();
 
-        const blob = new Blob([JSON.stringify(logContent, null, 2)], { type: 'application/json' });
+        let fileContent = `MIDI SESSION LOG\n`;
+        fileContent += `================================================================================\n`;
+        fileContent += `Start Time: ${startTimeIso}\n`;
+        fileContent += `End Time:   ${endTimeIso}\n`;
+        fileContent += `Total Events: ${recordingRef.current.length}\n`;
+        fileContent += `================================================================================\n\n`;
+        fileContent += `TIMESTAMP (ms) | TYPE             | CH | NOTE | VEL | DATA (HEX)\n`;
+        fileContent += `--------------------------------------------------------------------------------\n`;
+
+        recordingRef.current.forEach(msg => {
+            const time = Math.round(msg.timestamp - recordingRef.current[0].timestamp).toString().padEnd(14, ' ');
+            const type = msg.type.toUpperCase().padEnd(16, ' ');
+            const ch = msg.channel.toString().padStart(2, '0').padEnd(2, ' ');
+            const note = (msg.note !== undefined ? msg.note : '--').toString().padEnd(4, ' ');
+            const vel = (msg.velocity !== undefined ? msg.velocity : '--').toString().padEnd(3, ' ');
+            const hex = msg.data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+
+            fileContent += `${time} | ${type} | ${ch} | ${note} | ${vel} | ${hex}\n`;
+        });
+
+        const blob = new Blob([fileContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `midi_log_${recordingStartTime}.json`;
+        a.download = `midi_log_${recordingStartTime}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
