@@ -98,6 +98,54 @@
     box-shadow: 3px 3px 0 var(--color-accent-1), -3px -3px 0 var(--color-accent-2);
 }
 
+.recording-controls {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
+}
+
+.recording-controls button {
+    background: var(--color-bg);
+    border: 2px solid var(--color-fg);
+    padding: var(--space-s) var(--space-m);
+    font-family: var(--font-accent);
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.btn-record {
+    color: var(--color-fg);
+}
+
+.btn-record:hover {
+    background: var(--color-fg);
+    color: var(--color-bg);
+    box-shadow: 0 0 10px var(--color-accent-1); 
+}
+
+.btn-stop {
+    background: var(--color-fg) !important;
+    color: var(--color-bg) !important;
+    animation: blink-rec 1s infinite;
+}
+
+.btn-download {
+    border-style: dashed !important;
+}
+
+.btn-download:hover {
+    border-style: solid !important;
+    background: #f0f0f0;
+}
+
+@keyframes blink-rec {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 /* Visualization Area */
 .visualization-area {
     margin-bottom: var(--space-l);

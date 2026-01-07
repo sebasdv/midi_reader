@@ -97,6 +97,10 @@ export function useMIDI() {
             };
 
             setMessages(prev => [newMessage, ...prev].slice(0, 50));
+
+            if (isRecordingRef.current) {
+                recordingRef.current.push(newMessage);
+            }
         };
 
         input.onmidimessage = handleMIDIMessage;
@@ -106,5 +110,58 @@ export function useMIDI() {
         };
     }, [selectedInputId, inputs]);
 
-    return { inputs, selectedInputId, setSelectedInputId, messages };
+    const [isRecording, setIsRecording] = useState(false);
+    const isRecordingRef = useRef(false);
+    const recordingRef = useRef([]);
+    const [recordingStartTime, setRecordingStartTime] = useState(null);
+
+    const startRecording = () => {
+        setIsRecording(true);
+        isRecordingRef.current = true;
+        setRecordingStartTime(Date.now());
+        recordingRef.current = [];
+    };
+
+    const stopRecording = () => {
+        setIsRecording(false);
+        isRecordingRef.current = false;
+        const endTime = Date.now();
+        // Maybe we want to persist the last session in state if we want to show it?
+        // For now, we will rely on downloading it or accessing it via a helper function if needed immediately.
+        console.log("Recording stopped. Events:", recordingRef.current.length);
+    };
+
+    const downloadLog = () => {
+        if (recordingRef.current.length === 0) {
+            alert("No recorded data to download.");
+            return;
+        }
+
+        const logContent = {
+            startTime: new Date(recordingStartTime).toISOString(),
+            endTime: new Date().toISOString(), // Approximation if looked at later, or use actual stop time if tracked
+            events: recordingRef.current
+        };
+
+        const blob = new Blob([JSON.stringify(logContent, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `midi_log_${recordingStartTime}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    return {
+        inputs,
+        selectedInputId,
+        setSelectedInputId,
+        messages,
+        isRecording,
+        startRecording,
+        stopRecording,
+        downloadLog
+    };
 }

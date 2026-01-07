@@ -3,7 +3,7 @@ import { useMIDI } from '../hooks/useMIDI';
 import './MIDIReader.css';
 
 export function MIDIReader() {
-    const { inputs, selectedInputId, setSelectedInputId, messages } = useMIDI();
+    const { inputs, selectedInputId, setSelectedInputId, messages, isRecording, startRecording, stopRecording, downloadLog } = useMIDI();
 
     return (
         <div className="midi-reader">
@@ -14,6 +14,15 @@ export function MIDIReader() {
                 </div>
 
                 <div className="controls">
+                    <div className="recording-controls">
+                        {!isRecording ? (
+                            <button className="btn-record" onClick={startRecording}>[REC]</button>
+                        ) : (
+                            <button className="btn-stop" onClick={stopRecording}>[STOP_REC]</button>
+                        )}
+                        <button className="btn-download" onClick={downloadLog}>[EXP_LOG]</button>
+                    </div>
+
                     <label htmlFor="midi-input">DEV_ID: </label>
                     <div className="select-wrapper">
                         <select
