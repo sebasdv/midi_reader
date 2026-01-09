@@ -84,6 +84,14 @@ export function useMIDI() {
             } else if (command === 0xE) {
                 type = 'Pitch Bend';
                 // data1 = LSB, data2 = MSB
+            } else if (status === 0xF8) {
+                type = 'Clock';
+            } else if (status === 0xFA) {
+                type = 'Start';
+            } else if (status === 0xFC) {
+                type = 'Stop';
+            } else if (status === 0xFE) {
+                type = 'Active Sensing';
             }
 
             const newMessage = {
@@ -91,9 +99,9 @@ export function useMIDI() {
                 timestamp: event.timeStamp,
                 data: Array.from(data),
                 type,
-                channel: channel + 1,
-                note,
-                velocity
+                channel: (status < 0xF0) ? channel + 1 : '-',
+                note: (status < 0xF0) ? note : '-',
+                velocity: (status < 0xF0) ? velocity : '-'
             };
 
             setMessages(prev => [newMessage, ...prev].slice(0, 50));
@@ -125,10 +133,11 @@ export function useMIDI() {
     const stopRecording = () => {
         setIsRecording(false);
         isRecordingRef.current = false;
-        const endTime = Date.now();
-        // Maybe we want to persist the last session in state if we want to show it?
-        // For now, we will rely on downloading it or accessing it via a helper function if needed immediately.
         console.log("Recording stopped. Events:", recordingRef.current.length);
+    };
+
+    const clearLog = () => {
+        setMessages([]);
     };
 
     const downloadLog = () => {
@@ -153,8 +162,8 @@ export function useMIDI() {
             const time = Math.round(msg.timestamp - recordingRef.current[0].timestamp).toString().padEnd(14, ' ');
             const type = msg.type.toUpperCase().padEnd(16, ' ');
             const ch = msg.channel.toString().padStart(2, '0').padEnd(2, ' ');
-            const note = (msg.note !== undefined ? msg.note : '--').toString().padEnd(4, ' ');
-            const vel = (msg.velocity !== undefined ? msg.velocity : '--').toString().padEnd(3, ' ');
+            const note = (msg.note !== '-' ? msg.note : '--').toString().padEnd(4, ' ');
+            const vel = (msg.velocity !== '-' ? msg.velocity : '--').toString().padEnd(3, ' ');
             const hex = msg.data.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
 
             fileContent += `${time} | ${type} | ${ch} | ${note} | ${vel} | ${hex}\n`;
@@ -179,6 +188,7 @@ export function useMIDI() {
         isRecording,
         startRecording,
         stopRecording,
+        clearLog,
         downloadLog
     };
 }
